@@ -49,6 +49,8 @@ services:
       - "8000:8000"
     networks:
       - app-network
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     restart: unless-stopped
 
   app:
@@ -99,6 +101,7 @@ services:
       - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=${GMAIL_PROPERTIES_STARTTLS}
       - SPRING_MAIL_PROTOCOL=smtp
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
+      - GEMINI_API_URL=http://fourstars-nlp-api:8000
     volumes:
       - ./uploads:/app/uploads
       - ./src:/app/src

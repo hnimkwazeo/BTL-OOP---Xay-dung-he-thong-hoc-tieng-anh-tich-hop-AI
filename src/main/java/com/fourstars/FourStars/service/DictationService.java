@@ -36,16 +36,15 @@ public class DictationService {
     private final DictationTopicRepository topicRepository;
     private final CategoryRepository categoryRepository;
     private final DictationSentenceRepository sentenceRepository;
-    private final NlpApiService nlpApiService;
+    
+    // Đã xóa NlpApiService
 
     public DictationService(DictationTopicRepository topicRepository,
             CategoryRepository categoryRepository,
-            DictationSentenceRepository sentenceRepository,
-            NlpApiService nlpApiService) {
+            DictationSentenceRepository sentenceRepository) { // Đã xóa tham số nlpApiService
         this.topicRepository = topicRepository;
         this.categoryRepository = categoryRepository;
         this.sentenceRepository = sentenceRepository;
-        this.nlpApiService = nlpApiService;
     }
 
     @Transactional
@@ -217,13 +216,21 @@ public class DictationService {
         return convertToAdminDTO(topic);
     }
 
+    // === ĐÃ SỬA HÀM NÀY THÀNH GIẢ LẬP (MOCK) ===
     @Transactional(readOnly = true)
     public NlpAnalysisResponse submitAndAnalyze(long sentenceId, String userText) {
-        logger.info("User submitting answer for sentence ID: {}", sentenceId);
-        DictationSentence sentence = sentenceRepository.findById(sentenceId)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("Dictation sentence not found with id: " + sentenceId));
-        return nlpApiService.getAnalysis(userText, sentence.getCorrectText());
+        logger.info("User submitting answer for sentence ID: {} (Mock Mode - NLP Disabled)", sentenceId);
+        
+        // Vẫn kiểm tra ID để đảm bảo tính toàn vẹn dữ liệu
+        if (!sentenceRepository.existsById(sentenceId)) {
+             throw new ResourceNotFoundException("Dictation sentence not found with id: " + sentenceId);
+        }
+        
+        // Trả về kết quả giả lập ngay lập tức
+        NlpAnalysisResponse mockResponse = new NlpAnalysisResponse();
+        mockResponse.setScore(100);
+        // Bạn có thể set thêm các thông tin khác nếu muốn (vd: explanations, diffs rỗng...)
+        return mockResponse;
     }
 
     private DictationTopicResponseDTO convertToUserResponseDTO(DictationTopic topic, boolean includeSentences) {
