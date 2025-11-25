@@ -34,7 +34,7 @@ public class ChatMessage {
     private String role;
 
     @Lob // Để lưu trữ nội dung tin nhắn lớn
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, columnDefinition = "LONGTEXT")
     private String content;
 
     @Column(name = "created_at", nullable = false)

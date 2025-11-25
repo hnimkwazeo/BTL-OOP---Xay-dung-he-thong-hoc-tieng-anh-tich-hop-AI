@@ -77,7 +77,7 @@ CREATE TABLE `badges` (
 
 LOCK TABLES `badges` WRITE;
 /*!40000 ALTER TABLE `badges` DISABLE KEYS */;
-INSERT INTO `badges` VALUES (1,'2025-10-07 18:56:25.000000','system','Default badge for new users.','https://cdn.fourstarsenglish.com/badges/default.png','Default Badge',0,'2025-10-07 18:56:25.000000','system');
+INSERT INTO `badges` VALUES (1,NOW(),'system','Default badge for new users.','/uploads/badges/rank_default.jpg','Chưa có hạng',0,NOW(),'system');
 /*!40000 ALTER TABLE `badges` ENABLE KEYS */;
 UNLOCK TABLES;
 

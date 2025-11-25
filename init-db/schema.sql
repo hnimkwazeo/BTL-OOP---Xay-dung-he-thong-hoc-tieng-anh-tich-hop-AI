@@ -2,6 +2,17 @@
 SET FOREIGN_KEY_CHECKS = 0;
 SET NAMES 'utf8mb4';
 
+LOCK TABLES `badges` WRITE;
+/*!40000 ALTER TABLE `badges` DISABLE KEYS */;
+INSERT INTO `badges` VALUES
+(2, NOW(), 'system', 'Đạt mốc 100 điểm', '/uploads/badges/rank_dong.jpg', 'Hạng Đồng', 100, NOW(), 'system'),
+(3, NOW(), 'system', 'Đạt mốc 500 điểm', '/uploads/badges/rank_bac.jpg', 'Hạng Bạc', 500, NOW(), 'system'),
+(4, NOW(), 'system', 'Đạt mốc 1000 điểm', '/uploads/badges/rank_vang.jpg', 'Hạng Vàng', 1000, NOW(), 'system'),
+(5, NOW(), 'system', 'Đạt mốc 5000 điểm', '/uploads/badges/rank_kim_cuong.jpg', 'Kim Cương', 5000, NOW(), 'system');
+/*!40000 ALTER TABLE `badges` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
 -- ---------------------------------
 -- Bảng 1: Gói cước (plans)
 -- (Tạo 10 gói cước khác nhau)
@@ -33,12 +44,12 @@ LOCK TABLES `users` WRITE;
 INSERT INTO `users` (`id`, `active`, `created_at`, `created_by`, `email`, `last_activity_date`, `name`, `password`, `point`, `refresh_token`, `streak_count`, `updated_at`, `updated_by`, `badge_id`, `role_id`)
 VALUES
 -- Mật khẩu: '12345678' -> $2b$10$0e4gOePZVA/X0z6hnvyHoenj/2QKy4LVJYlL2UnSeJZtrfQAfrpzu
-(3, 1, NOW(), 'system', 'premium.user@gmail.com', CURDATE(), 'Premium User', '$2b$10$0e4gOePZVA/X0z6hnvyHoenj/2QKy4LVJYlL2UnSeJZtrfQAfrpzu', 150, NULL, 5, NOW(), 'system', 1, 2), -- role_id = 2 (PREMIUM)
+(3, 1, NOW(), 'system', 'premium.user@gmail.com', CURDATE(), 'Premium User', '$2b$10$0e4gOePZVA/X0z6hnvyHoenj/2QKy4LVJYlL2UnSeJZtrfQAfrpzu', 150, NULL, 5, NOW(), 'system', 2, 2), -- role_id = 2 (PREMIUM)
 (4, 1, NOW(), 'system', 'normal.user@gmail.com', CURDATE(), 'Normal User', '$2b$10$0e4gOePZVA/X0z6hnvyHoenj/2QKy4LVJYlL2UnSeJZtrfQAfrpzu', 20, NULL, 1, NOW(), 'system', 1, 3), -- role_id = 3 (USER)
-(5, 1, NOW(), 'system', 'teacher.demo@gmail.com', CURDATE(), 'Demo Teacher', '$2b$10$0e4gOePZVA/X0z6hnvyHoenj/2QKy4LVJYlL2UnSeJZtrfQAfrpzu', 500, NULL, 10, NOW(), 'system', 1, 1), -- role_id = 1 (ADMIN)
+(5, 1, NOW(), 'system', 'teacher.demo@gmail.com', CURDATE(), 'Demo Teacher', '$2b$10$0e4gOePZVA/X0z6hnvyHoenj/2QKy4LVJYlL2UnSeJZtrfQAfrpzu', 500, NULL, 10, NOW(), 'system', 3, 1), -- role_id = 1 (ADMIN)
 (6, 1, NOW(), 'system', 'student.a@gmail.com', CURDATE(), 'Student Alpha', '$2b$10$0e4gOePZVA/X0z6hnvyHoenj/2QKy4LVJYlL2UnSeJZtrfQAfrpzu', 10, NULL, 0, NOW(), 'system', 1, 3), -- role_id = 3 (USER)
 (7, 1, NOW(), 'system', 'student.b@gmail.com', CURDATE(), 'Student Beta', '$2b$10$0e4gOePZVA/X0z6hnvyHoenj/2QKy4LVJYlL2UnSeJZtrfQAfrpzu', 75, NULL, 3, NOW(), 'system', 1, 3), -- role_id = 3 (USER)
-(8, 1, NOW(), 'system', 'pro.learner@gmail.com', CURDATE(), 'Pro Learner', '$2b$10$0e4gOePZVA/X0z6hnvyHoenj/2QKy4LVJYlL2UnSeJZtrfQAfrpzu', 1200, NULL, 30, NOW(), 'system', 1, 2), -- role_id = 2 (PREMIUM)
+(8, 1, NOW(), 'system', 'pro.learner@gmail.com', CURDATE(), 'Pro Learner', '$2b$10$0e4gOePZVA/X0z6hnvyHoenj/2QKy4LVJYlL2UnSeJZtrfQAfrpzu', 1200, NULL, 30, NOW(), 'system', 4, 2), -- role_id = 2 (PREMIUM)
 (9, 1, NOW(), 'system', 'test.user.01@gmail.com', CURDATE(), 'Test User 01', '$2b$10$0e4gOePZVA/X0z6hnvyHoenj/2QKy4LVJYlL2UnSeJZtrfQAfrpzu', 0, NULL, 0, NOW(), 'system', 1, 3), -- role_id = 3 (USER)
 (10, 0, NOW(), 'system', 'disabled.user@gmail.com', CURDATE(), 'Disabled User', '$2b$10$0e4gOePZVA/X0z6hnvyHoenj/2QKy4LVJYlL2UnSeJZtrfQAfrpzu', 0, NULL, 0, NOW(), 'system', 1, 3); -- role_id = 3 (USER)
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
@@ -175,22 +186,16 @@ LOCK TABLES `articles` WRITE;
 /*!40000 ALTER TABLE `articles` DISABLE KEYS */;
 INSERT INTO `articles` (`id`, `audio`, `content`, `created_at`, `created_by`, `image`, `title`, `updated_at`, `updated_by`, `category_id`)
 VALUES
-(1, 'https://dictionary.cambridge.org/us/media/english/us_pron/l/lio/lion_/lion.mp3', '<h2>Thành phố tương lai</h2><p>Các nhà khoa học đang nghiên cứu...</p>', NOW(), 'system', 'https://wallpaperaccess.com/full/1933572.jpg', 'Building the City of the Future', NOW(), 'system', 14),
-(2, 'https://dictionary.cambridge.org/us/media/english/us_pron/t/tig/tiger/tiger.mp3', '<h2>AI thay đổi thế giới</h2><p>Trí tuệ nhân tạo đang phát triển nhanh...</p>', NOW(), 'system', 'https://tenten.vn/tin-tuc/wp-content/uploads/2023/08/tri-tue-nhan-tao-la-gi.png', 'How AI is Changing the World', NOW(), 'system', 14),
-(3, 'https://dictionary.cambridge.org/us/media/english/us_pron/e/ele/eleph/elephant.mp3', '<h2>Lợi ích của việc ngủ đủ giấc</h2><p>Ngủ đủ 8 tiếng mỗi ngày...</p>', NOW(), 'system', 'https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/hien_tuong_ngu_khong_day_duoc_la_gi_va_cach_khac_phuc_ji_AWO_1680064271_a1dc22021e.jpg', 'The Benefits of Sleep', NOW(), 'system', 14),
-(4, 'https://dictionary.cambridge.org/us/media/english/us_pron/d/doc/docto/doctor.mp3', '<h2>Phát hiện hành tinh mới</h2><p>Kính viễn vọng Webb đã tìm thấy...</p>', NOW(), 'system', 'https://camerasieunho.vn/wp-content/uploads/2021/07/k%C3%ADnh-thi%C3%AAn-v%C4%83n-F90060-15.jpg', 'New Planet Discovered', NOW(), 'system', 14),
-(5, 'https://dictionary.cambridge.org/us/media/english/us_pron/e/eng/engin/engineer.mp3', '<h2>Bí ẩn dưới đáy đại dương</h2><p>Chúng ta biết ít về đại dương...</p>', NOW(), 'system', 'https://aquariumworks.files.wordpress.com/2014/06/blue-ocean-28668-1920x1200.jpg', 'Mysteries of the Deep Ocean', NOW(), 'system', 14),
-(6, 'https://dictionary.cambridge.org/us/media/english/us_pron/t/tea/teach/teacher.mp3', '<h2>Lịch sử Vua Arthur</h2><p>Liệu Vua Arthur có thật không? ...</p>', NOW(), 'system', 'https://media.phunutoday.vn/files/content/2024/01/10/vua3-2122.jpg', 'The Legend of King Arthur', NOW(), 'system', 14),
-(7, 'https://dictionary.cambridge.org/us/media/english/us_pron/a/app/apple/apple.mp3', '<h2>Ẩm thực Ý</h2><p>Pizza và Pasta nổi tiếng toàn cầu...</p>', NOW(), 'system', 'https://images7.alphacoders.com/596/thumb-1920-596343.jpg', 'The History of Italian Cuisine', NOW(), 'system', 14),
-(8, 'https://dictionary.cambridge.org/us/media/english/us_pron/b/bre/bread/bread.mp3', '<h2>Sự trỗi dậy của K-Pop</h2><p>Âm nhạc Hàn Quốc đã chinh phục...</p>', NOW(), 'system', 'https://www.musicmundial.com/wp-content/uploads/2023/01/Los-artistas-de-KPOP-mas-escuchados-en-Spotify-este-2022.jpg', 'The Rise of K-Pop', NOW(), 'system', 14),
-(9, 'https://dictionary.cambridge.org/us/media/english/us_pron/h/hot/hotel/hotel.mp3', '<h2>World Cup 2026</h2><p>Giải vô địch bóng đá thế giới sẽ...</p>', NOW(), 'system', 'https://hanoispiritofplace.com/wp-content/uploads/2017/06/hinh-nen-bong-da-dep-12.jpg', 'World Cup 2026 Preparations', NOW(), 'system', 14),
-(10, 'https://dictionary.cambridge.org/us/media/english/us_pron/h/hot/hotel/hotel.mp3', '<h2>Du lịch bền vững</h2><p>Làm thế nào để du lịch mà không...</p>', NOW(), 'system', 'https://media.mia.vn/uploads/blog-du-lich/kham-pha-lich-trinh-du-lich-ha-long-3n2d-khong-the-bo-lo-1642044175.jpg', 'Sustainable Tourism', NOW(), 'system', 14);
+(1, '/uploads/audio/article_1.mp3', '<h2>Thành phố tương lai</h2><p>Các nhà khoa học đang nghiên cứu...</p>', NOW(), 'system', '/uploads/articles/image/image_1.jpg', 'Building the City of the Future', NOW(), 'system', 14),
+(2, '/uploads/audio/article_2.mp3', '<h2>AI thay đổi thế giới</h2><p>Trí tuệ nhân tạo đang phát triển nhanh...</p>', NOW(), 'system', '/uploads/articles/image/image_2.jpg', 'How AI is Changing the World', NOW(), 'system', 14),
+(3, '/uploads/audio/article_3.mp3', '<h2>Lợi ích của việc ngủ đủ giấc</h2><p>Ngủ đủ 8 tiếng mỗi ngày...</p>', NOW(), 'system', '/uploads/articles/image/image_3.jpg', 'The Benefits of Sleep', NOW(), 'system', 14),
+(4, '/uploads/audio/article_3.mp3', '<h2>Lịch sử Vua Arthur</h2><p>Liệu Vua Arthur có thật không? ...</p>', NOW(), 'system', '/uploads/articles/image/image_6.jpg', 'The Legend of King Arthur', NOW(), 'system', 14);
 /*!40000 ALTER TABLE `articles` ENABLE KEYS */;
 UNLOCK TABLES;
 
 -- ---------------------------------
 -- Bảng 9: Chủ đề Nghe chép (dictation_topics)
--- (Tạo 10 chủ đề)
+-- (3 chủ đề)
 -- ---------------------------------
 LOCK TABLES `dictation_topics` WRITE;
 /*!40000 ALTER TABLE `dictation_topics` DISABLE KEYS */;
@@ -198,35 +203,32 @@ INSERT INTO `dictation_topics` (`id`, `created_at`, `created_by`, `description`,
 VALUES
 (1, NOW(), 'system', 'Những câu ngắn và đơn giản.', 'Chủ đề 1: Câu ngắn', NOW(), 'system', 15),
 (2, NOW(), 'system', 'Các câu hỏi về thời tiết.', 'Chủ đề 2: Thời tiết', NOW(), 'system', 15),
-(3, NOW(), 'system', 'Hội thoại về gia đình.', 'Chủ đề 3: Gia đình', NOW(), 'system', 15),
-(4, NOW(), 'system', 'Mô tả về công việc.', 'Chủ đề 4: Công việc', NOW(), 'system', 15),
-(5, NOW(), 'system', 'Các câu về sở thích.', 'Chủ đề 5: Sở thích', NOW(), 'system', 15),
-(6, NOW(), 'system', 'Hội thoại về thức ăn.', 'Chủ đề 6: Thức ăn', NOW(), 'system', 15),
-(7, NOW(), 'system', 'Các câu về du lịch.', 'Chủ đề 7: Du lịch', NOW(), 'system', 15),
-(8, NOW(), 'system', 'Mô tả về sức khỏe.', 'Chủ đề 8: Sức khỏe', NOW(), 'system', 15),
-(9, NOW(), 'system', 'Các câu về thể thao.', 'Chủ đề 9: Thể thao', NOW(), 'system', 15),
-(10, NOW(), 'system', 'Hội thoại về phim ảnh.', 'Chủ đề 10: Phim ảnh', NOW(), 'system', 15);
+(3, NOW(), 'system', 'Hội thoại về gia đình.', 'Chủ đề 3: Gia đình', NOW(), 'system', 15);
 /*!40000 ALTER TABLE `dictation_topics` ENABLE KEYS */;
 UNLOCK TABLES;
 
 -- ---------------------------------
--- Bảng 10: Câu nghe chép (dictation_sentences)
--- (Tạo 10 câu cho Chủ đề 1)
+-- Bảng 10: Câu nghe chép (dictation_sentences)                                     >>>>>> FIX NỐT AUDIO CHO KHỚP <<<<<<
+-- (Mỗi chủ đề 3 câu, tổng cộng 9 câu)
 -- ---------------------------------
 LOCK TABLES `dictation_sentences` WRITE;
 /*!40000 ALTER TABLE `dictation_sentences` DISABLE KEYS */;
 INSERT INTO `dictation_sentences` (`id`, `audio_url`, `correct_text`, `order_index`, `topic_id`)
 VALUES
-(1, 'https://dictionary.cambridge.org/us/media/english/us_pron/h/hot/hotel/hotel.mp3', 'The weather is nice today.', 1, 1),
-(2, 'https://dictionary.cambridge.org/us/media/english/us_pron/e/ele/eleph/elephant.mp3', 'He plays football every weekend.', 2, 1),
-(3, 'https://dictionary.cambridge.org/us/media/english/us_pron/e/eng/engin/engineer.mp3', 'She is reading a book in the library.', 3, 1),
-(4, 'https://dictionary.cambridge.org/us/media/english/us_pron/e/ele/eleph/elephant.mp3', 'My favorite color is blue.', 4, 1),
-(5, 'https://dictionary.cambridge.org/us/media/english/us_pron/e/eng/engin/engineer.mp3', 'What time is it?', 5, 1),
-(6, 'https://dictionary.cambridge.org/us/media/english/us_pron/e/eng/engin/engineer.mp3', 'I have to go now.', 6, 1),
-(7, 'https://dictionary.cambridge.org/us/media/english/us_pron/e/eng/engin/engineer.mp3', 'See you later.', 7, 1),
-(8, 'https://dictionary.cambridge.org/us/media/english/us_pron/e/eng/engin/engineer.mp3', 'How are you doing?', 8, 1),
-(9, 'https://dictionary.cambridge.org/us/media/english/us_pron/e/ele/eleph/elephant.mp3', 'This is my friend, John.', 9, 1),
-(10, 'https://dictionary.cambridge.org/us/media/english/us_pron/h/hot/hotel/hotel.mp3', 'They live in a big house.', 10, 1);
+-- Chủ đề 1: Câu ngắn (Topic ID 1)
+(1, '/uploads/dictations/topic1_1.mp3', 'The weather is nice today.', 1, 1),
+(2, '/uploads/dictations/topic1_2.mp3', 'He plays football every weekend.', 2, 1),
+(3, '/uploads/dictations/topic1_3.mp3', 'She is reading a book in the library.', 3, 1),
+
+-- Chủ đề 2: Thời tiết (Topic ID 2)
+(4, '/uploads/dictations/topic2_1.mp3', 'It is raining heavily outside.', 1, 2),
+(5, '/uploads/dictations/topic2_2.mp3', 'The sun is shining bright.', 2, 2),
+(6, '/uploads/dictations/topic2_3.mp3', 'What is the temperature today?', 3, 2),
+
+-- Chủ đề 3: Gia đình (Topic ID 3)
+(7, '/uploads/dictations/topic3_1.mp3', 'My father is a doctor.', 1, 3),
+(8, '/uploads/dictations/topic3_2.mp3', 'I have two brothers and one sister.', 2, 3),
+(9, '/uploads/dictations/topic3_3.mp3', 'We love having dinner together.', 3, 3);
 /*!40000 ALTER TABLE `dictation_sentences` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -260,16 +262,11 @@ LOCK TABLES `questions` WRITE;
 INSERT INTO `questions` (`id`, `audio_url`, `correct_sentence`, `image_url`, `points`, `prompt`, `question_order`, `question_type`, `text_to_fill`, `quiz_id`, `vocabulary_id`)
 VALUES
 -- Quiz 1: Animals Vocab Quiz (ID 1) - Dữ liệu gốc của bạn
-(1, NULL, NULL, 'https://khoinguonsangtao.vn/wp-content/uploads/2022/10/anh-su-tu-gia.jpg', 10, 'What animal is this?', 1, 'MULTIPLE_CHOICE_IMAGE', NULL, 1, 1),
-(2, 'https://dictionary.cambridge.org/us/media/english/us_pron/t/tig/tiger/tiger.mp3', NULL, NULL, 10, 'Listen and choose the correct word.', 2, 'MULTIPLE_CHOICE_TEXT', NULL, 1, 2),
-(3, NULL, 'Elephant', NULL, 10, 'A very large grey mammal with a trunk.', 3, 'FILL_IN_BLANK', 'An ______ has a long trunk.', 1, 3),
-(4, NULL, 'What does the doctor do?', NULL, 10, 'Translate this sentence:', 4, 'TRANSLATE_VI_TO_EN', 'Bác sĩ làm gì?', 1, 4),
-(5, NULL, 'Cô ấy là một kỹ sư', NULL, 10, 'Translate this sentence:', 5, 'TRANSLATE_EN_TO_VI', 'She is an engineer.', 1, 5),
-(6, NULL, NULL, 'https://product.hstatic.net/200000631159/product/hoc-tieng-anh-voi-giao-vien-nuoc-ngoai202_5e0b25e0ea324a0f93d6e751be783d78.png', 10, 'What is this job?', 6, 'MULTIPLE_CHOICE_IMAGE', NULL, 1, 6),
-(7, NULL, 'Apple', NULL, 10, 'This fruit is usually red or green.', 7, 'FILL_IN_BLANK', 'An ______ a day keeps the doctor away.', 1, 7),
-(8, 'https://dictionary.cambridge.org/us/media/english/us_pron/b/bre/bread/bread.mp3', NULL, NULL, 10, 'Listen and choose the correct word.', 8, 'MULTIPLE_CHOICE_TEXT', NULL, 1, 8),
-(9, NULL, NULL, 'https://khoinguonsangtao.vn/wp-content/uploads/2022/10/hinh-anh-may-bay-vietnam-airlines.jpg', 10, 'What is this?', 9, 'MULTIPLE_CHOICE_IMAGE', NULL, 1, 9),
-(10, NULL, 'We stay at a hotel', NULL, 10, 'Sắp xếp lại câu:', 10, 'ARRANGE_WORDS', 'a / at / hotel / We / stay', 1, 10),
+(3, NULL, 'Elephant', NULL, 10, 'A very large grey mammal with a trunk: An ______ has a long trunk.', 1, 'FILL_IN_BLANK', 'An ______ has a long trunk.', 1, 3),
+(4, NULL, 'What does the doctor do?', NULL, 10, 'Translate this sentence: Bác sĩ làm gì?', 2, 'TRANSLATE_VI_TO_EN', 'Bác sĩ làm gì?', 1, 4),
+(5, NULL, 'Cô ấy là một kỹ sư', NULL, 10, 'Translate this sentence: She is an engineer', 3, 'TRANSLATE_EN_TO_VI', 'She is an engineer.', 1, 5),
+(7, NULL, 'Apple', NULL, 10, 'This fruit is usually red or green: An ______ a day keeps the doctor away.', 4, 'FILL_IN_BLANK', 'An ______ a day keeps the doctor away.', 1, 7),
+(10, NULL, 'We stay at a hotel', NULL, 10, 'We stay at a hotel', 5, 'ARRANGE_WORDS', 'a / at / hotel / We / stay', 1, 10),
 
 -- Quiz 2: Jobs Vocab Quiz (ID 2) - Bổ sung
 (11, NULL, 'Doctor', NULL, 10, 'This person works in a hospital and treats sick people.', 1, 'FILL_IN_BLANK', 'A ______ works in a hospital.', 2, 4),
@@ -277,7 +274,6 @@ VALUES
 (13, NULL, NULL, NULL, 10, 'This person teaches students in a school.', 3, 'MULTIPLE_CHOICE_TEXT', NULL, 2, 6),
 
 -- Quiz 3: Food Vocab Quiz (ID 3) - Bổ sung
-(14, NULL, NULL, 'https://hongngochospital.vn/wp-content/uploads/2013/11/tao-1.jpg', 10, 'What fruit is this?', 1, 'MULTIPLE_CHOICE_IMAGE', NULL, 3, 7),
 (15, NULL, 'Bread', NULL, 10, 'We often eat this for breakfast, made from flour.', 2, 'FILL_IN_BLANK', 'I eat ______ for breakfast.', 3, 8),
 
 -- Quiz 4: Travel Vocab Quiz (ID 4) - Bổ sung
@@ -321,96 +317,47 @@ UNLOCK TABLES;
 -- ---------------------------------
 LOCK TABLES `question_choices` WRITE;
 /*!40000 ALTER TABLE `question_choices` DISABLE KEYS */;
-INSERT INTO `question_choices` (`content`, `image_url`, `is_correct`, `question_id`)
+INSERT INTO `question_choices` (`id`, `content`, `image_url`, `is_correct`, `question_id`)
 VALUES
--- Q1 (Lion)
-('Lion', NULL, 1, 1),
-('Tiger', NULL, 0, 1),
-('Elephant', NULL, 0, 1),
--- Q2 (Tiger)
-('Doctor', NULL, 0, 2),
-('Tiger', NULL, 1, 2),
-('Teacher', NULL, 0, 2),
--- Q6 (Teacher)
-('Engineer', NULL, 0, 6),
-('Doctor', NULL, 0, 6),
-('Teacher', NULL, 1, 6),
--- Q8 (Bread)
-('Apple', NULL, 0, 8),
-('Bread', NULL, 1, 8),
-('Airplane', NULL, 0, 8),
--- Q9 (Airplane)
-('Hotel', NULL, 0, 9),
-('Airplane', NULL, 1, 9),
-('Lion', NULL, 0, 9),
+-- Quiz 2 (Jobs) - Q12
+(1, 'Engineer', NULL, 1, 12),
+(2, 'Teacher', NULL, 0, 12),
+(3, 'Doctor', NULL, 0, 12),
+-- Quiz 2 - Q13
+(4, 'Doctor', NULL, 0, 13),
+(5, 'Engineer', NULL, 0, 13),
+(6, 'Teacher', NULL, 1, 13),
 
--- Bổ sung cho Quiz 2
--- Q12 (Engineer)
-('Engineer', NULL, 1, 12),
-('Teacher', NULL, 0, 12),
-('Doctor', NULL, 0, 12),
--- Q13 (Teacher)
-('Doctor', NULL, 0, 13),
-('Engineer', NULL, 0, 13),
-('Teacher', NULL, 1, 13),
+-- Quiz 4 (Travel) - Q16
+(7, 'Airplane', NULL, 0, 16),
+(8, 'Hotel', NULL, 1, 16),
+(9, 'Food', NULL, 0, 16),
 
--- Bổ sung cho Quiz 3
--- Q14 (Apple)
-('Apple', 'https://hongngochospital.vn/wp-content/uploads/2013/11/tao-1.jpg', 1, 14),
-('Bread', 'https://assets.epicurious.com/photos/562e49d300392e9c31da8947/master/pass/EP_10212015_BanhMi-4.jpg', 0, 14),
-('Lion', 'https://wallpaperaccess.com/full/427061.jpg', 0, 14),
+-- Quiz 5 (Tenses) - Q19
+(10, 'don''t like', NULL, 1, 19),
+(11, 'doesn''t like', NULL, 0, 19),
+(12, 'not like', NULL, 0, 19),
+-- Quiz 5 - Q20
+(13, 'watches', NULL, 1, 20),
+(14, 'watch', NULL, 0, 20),
+(15, 'is watch', NULL, 0, 20),
 
--- Bổ sung cho Quiz 4
--- Q16 (Hotel)
-('Airplane', NULL, 0, 16),
-('Hotel', NULL, 1, 16),
-('Food', NULL, 0, 16),
+-- Quiz 6 (Past Simple) - Q22
+(16, 'not saw', NULL, 0, 22),
+(17, 'didn''t see', NULL, 1, 22),
+(18, 'no see', NULL, 0, 22),
 
--- Bổ sung cho Quiz 5
--- Q19 (They ... coffee)
-('don''t like', NULL, 1, 19),
-('doesn''t like', NULL, 0, 19),
-('not like', NULL, 0, 19),
--- Q20 (He ... TV)
-('watches', NULL, 1, 20),
-('watch', NULL, 0, 20),
-('is watch', NULL, 0, 20),
+-- Quiz 7 (Prepositions) - Q23, Q24, Q25
+(19, 'at', NULL, 1, 23), (20, 'on', NULL, 0, 23), (21, 'in', NULL, 0, 23),
+(22, 'at', NULL, 0, 24), (23, 'on', NULL, 1, 24), (24, 'in', NULL, 0, 24),
+(25, 'at', NULL, 0, 25), (26, 'on', NULL, 0, 25), (27, 'in', NULL, 1, 25),
 
--- Bổ sung cho Quiz 6
--- Q22 (He ... see)
-('not saw', NULL, 0, 22),
-('didn''t see', NULL, 1, 22),
-('no see', NULL, 0, 22),
+-- Quiz 8 (Review) - Q27
+(28, 'have been', NULL, 1, 27), (29, 'am', NULL, 0, 27), (30, 'was', NULL, 0, 27),
 
--- Bổ sung cho Quiz 7
--- Q23 (... 5 PM)
-('at', NULL, 1, 23),
-('on', NULL, 0, 23),
-('in', NULL, 0, 23),
--- Q24 (... Monday)
-('at', NULL, 0, 24),
-('on', NULL, 1, 24),
-('in', NULL, 0, 24),
--- Q25 (... Vietnam)
-('at', NULL, 0, 25),
-('on', NULL, 0, 25),
-('in', NULL, 1, 25),
-
--- Bổ sung cho Quiz 8
--- Q27 (I ... here)
-('have been', NULL, 1, 27),
-('am', NULL, 0, 27),
-('was', NULL, 0, 27),
-
--- Bổ sung cho Quiz 9
--- Q28 (afraid ... spiders)
-('of', NULL, 1, 28),
-('with', NULL, 0, 28),
-('for', NULL, 0, 28),
--- Q29 (good ... tennis)
-('in', NULL, 0, 29),
-('at', NULL, 1, 29),
-('on', NULL, 0, 29);
+-- Quiz 9 (Review) - Q28, Q29
+(31, 'of', NULL, 1, 28), (32, 'with', NULL, 0, 28), (33, 'for', NULL, 0, 28),
+(34, 'in', NULL, 0, 29), (35, 'at', NULL, 1, 29), (36, 'on', NULL, 0, 29);
 /*!40000 ALTER TABLE `question_choices` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -422,26 +369,12 @@ LOCK TABLES `user_quiz_attempts` WRITE;
 /*!40000 ALTER TABLE `user_quiz_attempts` DISABLE KEYS */;
 INSERT INTO `user_quiz_attempts` (`id`, `completed_at`, `score`, `started_at`, `status`, `quiz_id`, `user_id`)
 VALUES
--- User 2 (vunhatminh) làm Quiz 1
-(1, NOW(), 80, NOW(), 'COMPLETED', 1, 2),
--- User 3 (Premium) làm Quiz 1
-(2, NOW(), 100, NOW(), 'COMPLETED', 1, 3),
--- User 4 (Normal) làm Quiz 1
-(3, NOW(), 50, NOW(), 'COMPLETED', 1, 4),
--- User 8 (Pro) làm Quiz 2
-(4, NOW(), 90, NOW(), 'COMPLETED', 2, 8),
--- User 7 (Student Beta) làm Quiz 5
-(5, NOW(), 70, NOW(), 'COMPLETED', 5, 7),
--- User 6 (Student Alpha) đang làm Quiz 1
-(6, NULL, 0, NOW(), 'IN_PROGRESS', 1, 6),
--- User 2 (vunhatminh) làm lại Quiz 1
-(7, NOW(), 100, NOW(), 'COMPLETED', 1, 2),
--- User 3 (Premium) làm Quiz 3
-(8, NOW(), 80, NOW(), 'COMPLETED', 3, 3),
--- User 4 (Normal) làm Quiz 7
-(9, NOW(), 40, NOW(), 'COMPLETED', 7, 4),
--- User 8 (Pro) làm Quiz 10
-(10, NOW(), 100, NOW(), 'COMPLETED', 10, 8);
+-- User 2 làm Quiz 1 (Animals) - Đúng 4/5 câu (40 điểm)
+(1, NOW(), 40, NOW(), 'COMPLETED', 1, 2),
+-- User 3 làm Quiz 2 (Jobs) - Đúng 3/3 câu (30 điểm)
+(2, NOW(), 30, NOW(), 'COMPLETED', 2, 3),
+-- User 4 làm Quiz 5 (Tenses) - Đúng 2/3 câu (20 điểm)
+(3, NOW(), 20, NOW(), 'COMPLETED', 5, 4);
 /*!40000 ALTER TABLE `user_quiz_attempts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -453,20 +386,36 @@ LOCK TABLES `user_answers` WRITE;
 /*!40000 ALTER TABLE `user_answers` DISABLE KEYS */;
 INSERT INTO `user_answers` (`is_correct`, `points_awarded`, `user_answer_text`, `question_id`, `selected_choice_id`, `user_quiz_attempt_id`)
 VALUES
--- Lượt làm 1 (Quiz 1, 10 câu hỏi)
-(1, 10, NULL, 1, 1, 1), -- Q1 (Lion) -> Chọn 'Lion' (ID 1) -> ĐÚNG
-(1, 10, NULL, 2, 5, 1), -- Q2 (Tiger) -> Chọn 'Tiger' (ID 5) -> ĐÚNG
-(1, 10, 'Elephant', 3, NULL, 1), -- Q3 (Elephant) -> Điền 'Elephant' -> ĐÚNG
-(1, 10, 'What does the doctor do?', 4, NULL, 1), -- Q4 (Doctor) -> Dịch -> ĐÚNG
-(1, 10, 'Cô ấy là một kỹ sư', 5, NULL, 1), -- Q5 (Engineer) -> Dịch -> ĐÚNG
-(1, 10, NULL, 6, 9, 1), -- Q6 (Teacher) -> Chọn 'Teacher' (ID 9) -> ĐÚNG
-(0, 0, 'Fruit', 7, NULL, 1), -- Q7 (Apple) -> Điền 'Fruit' -> SAI
-(1, 10, NULL, 8, 11, 1), -- Q8 (Bread) -> Chọn 'Bread' (ID 11) -> ĐÚNG
-(1, 10, NULL, 9, 14, 1), -- Q9 (Airplane) -> Chọn 'Airplane' (ID 14) -> ĐÚNG
-(0, 0, 'We at a stay hotel', 10, NULL, 1); -- Q10 (Hotel) -> Sắp xếp -> SAI
+-- == Chi tiết cho Attempt 1 (User 2 - Quiz 1 Animals - 40 điểm) ==
+-- Q3 (Elephant): Đúng
+(1, 10, 'Elephant', 3, NULL, 1),
+-- Q4 (Dịch): Đúng
+(1, 10, 'What does the doctor do?', 4, NULL, 1),
+-- Q5 (Dịch): Đúng
+(1, 10, 'She is an engineer', 5, NULL, 1),
+-- Q7 (Apple): Sai (Điền nhầm 'Fruit')
+(0, 0, 'Fruit', 7, NULL, 1),
+-- Q10 (Sắp xếp): Đúng
+(1, 10, 'We stay at a hotel', 10, NULL, 1),
+
+-- == Chi tiết cho Attempt 2 (User 3 - Quiz 2 Jobs - 30 điểm) ==
+-- Q11 (Điền từ Doctor): Đúng
+(1, 10, 'Doctor', 11, NULL, 2),
+-- Q12 (Trắc nghiệm Engineer): Đúng (Chọn ID 1)
+(1, 10, NULL, 12, 1, 2),
+-- Q13 (Trắc nghiệm Teacher): Đúng (Chọn ID 6)
+(1, 10, NULL, 13, 6, 2),
+
+-- == Chi tiết cho Attempt 3 (User 4 - Quiz 5 Tenses - 20 điểm) ==
+-- Q18 (Điền từ): Đúng
+(1, 10, 'works', 18, NULL, 3),
+-- Q19 (Trắc nghiệm): Đúng (Chọn ID 10 - don't like)
+(1, 10, NULL, 19, 10, 3),
+-- Q20 (Trắc nghiệm): Sai (Chọn ID 14 - watch, đúng là watches)
+(0, 0, NULL, 20, 14, 3);
+
 /*!40000 ALTER TABLE `user_answers` ENABLE KEYS */;
 UNLOCK TABLES;
-
 -- ---------------------------------
 -- Bảng 16: Sổ tay từ vựng (user_vocabularies)
 -- (Tạo 10 bản ghi lưu từ vựng)
@@ -563,23 +512,6 @@ VALUES
 (10, 'Test comment from a normal user.', NOW(), 'system', NOW(), 'system', NULL, 10, 4);
 /*!40000 ALTER TABLE `comments` ENABLE KEYS */;
 UNLOCK TABLES;
-
--- ---------------------------------
--- Bảng Phụ: Huy hiệu (badges)
--- (Bổ sung thêm các huy hiệu xếp hạng)
--- ---------------------------------
-LOCK TABLES `badges` WRITE;
-/*!40000 ALTER TABLE `badges` DISABLE KEYS */;
--- ID=1 là 'Default Badge' đã có từ file backup.sql
-INSERT INTO `badges` (`id`, `active`, `created_at`, `created_by`, `description`, `image`, `name`, `point`, `updated_at`, `updated_by`)
-VALUES
-(2, 1, NOW(), 'system', 'Đạt mốc 100 điểm', '/uploads/badges/rank.webp', 'Hạng Đồng', 100, NOW(), 'system'),
-(3, 1, NOW(), 'system', 'Đạt mốc 500 điểm', '/uploads/badges/hang-bac.png', 'Hạng Bạc', 500, NOW(), 'system'),
-(4, 1, NOW(), 'system', 'Đạt mốc 1000 điểm', '/uploads/badges/hang-vang.png', 'Hạng Vàng', 1000, NOW(), 'system'),
-(5, 1, NOW(), 'system', 'Đạt mốc 5000 điểm', '/uploads/badges/kim-cuong.png', 'Kim Cương', 5000, NOW(), 'system');
-/*!40000 ALTER TABLE `badges` ENABLE KEYS */;
-UNLOCK TABLES;
-
 
 -- Kích hoạt lại kiểm tra khóa ngoại
 SET FOREIGN_KEY_CHECKS = 1;

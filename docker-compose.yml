@@ -44,7 +44,7 @@ services:
 
   nlp-api:
     container_name: fourstars-nlp-api
-    build: ../4Stars-english-AI
+    build: ../AI
     ports:
       - "8000:8000"
     networks:
