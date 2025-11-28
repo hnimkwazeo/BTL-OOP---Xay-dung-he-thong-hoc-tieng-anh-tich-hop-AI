@@ -14,10 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate; // Dùng RestTemplate
+
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,22 +34,22 @@ public class ChatbotService {
     private static final Logger logger = LoggerFactory.getLogger(ChatbotService.class);
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
-    private final RestClient restClient;
+    
+    // Chúng ta dùng RestTemplate mới trực tiếp, không cần Inject Bean cũ
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${NLP_API_URL:http://localhost:8000/api/chat}")
+    @Value("${NLP_API_URL}")
     private String nlpApiUrl;
 
     @Autowired
-    public ChatbotService(ChatMessageRepository chatMessageRepository, UserRepository userRepository, RestClient.Builder restClientBuilder) {
+    public ChatbotService(ChatMessageRepository chatMessageRepository, UserRepository userRepository) {
         this.chatMessageRepository = chatMessageRepository;
         this.userRepository = userRepository;
-        this.restClient = restClientBuilder.build();
     }
 
     @Data
     @NoArgsConstructor
     private static class PythonAiResponse {
-        private String assistantResponse;
         private String text;
         private String error;
     }
@@ -60,14 +63,29 @@ public class ChatbotService {
 
         String assistantResponseText = "Lỗi kết nối AI.";
         try {
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("message", request.getMessage()); // Gửi key "message"
-
-            PythonAiResponse response = restClient.post().uri(nlpApiUrl).contentType(MediaType.APPLICATION_JSON).body(payload).retrieve().body(PythonAiResponse.class);
+            String chatEndpoint = nlpApiUrl + "/api/chat";
             
-            if (response != null) assistantResponseText = response.getAssistantResponse() != null ? response.getAssistantResponse() : response.getText();
+            // --- SỬA: Dùng RestTemplate để gửi JSON chuẩn xác ---
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            // Tạo Map dữ liệu (RestTemplate tự động chuyển Map thành JSON chuẩn)
+            Map<String, String> payload = new HashMap<>();
+            payload.put("message", request.getMessage());
+            
+            HttpEntity<Map<String, String>> entity = new HttpEntity<>(payload, headers);
+            
+            logger.info("Sending to Python (RestTemplate): {}", chatEndpoint);
+            
+            // Gửi Request
+            PythonAiResponse response = restTemplate.postForObject(chatEndpoint, entity, PythonAiResponse.class);
+            
+            if (response != null) {
+                assistantResponseText = response.getText() != null ? response.getText() : "AI không trả lời.";
+            }
         } catch (Exception e) {
             logger.error("AI Error: ", e);
+            assistantResponseText = "Lỗi xử lý AI: " + e.getMessage();
         }
 
         chatMessageRepository.save(new ChatMessage(null, currentUser, conversationId, "user", request.getMessage(), Instant.now()));

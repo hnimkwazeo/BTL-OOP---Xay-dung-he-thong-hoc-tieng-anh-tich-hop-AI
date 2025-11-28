@@ -4,10 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate; // Dùng cái này
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -16,44 +20,94 @@ import java.io.IOException;
 public class VoiceService {
 
     private static final Logger logger = LoggerFactory.getLogger(VoiceService.class);
-    private final RestClient restClient;
+    
+    // Dùng RestTemplate cho tất cả các request (Upload File + Chat JSON)
+    // Vì nó xử lý Multipart ổn định hơn RestClient trong trường hợp này
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    // Lấy URL gốc từ cấu hình (ví dụ: http://fourstars-nlp-api:8000/api/chat)
-    // Ta sẽ cắt bớt đuôi /chat để ghép endpoint mới
     @Value("${NLP_API_URL}") 
-    private String nlpApiUrl; 
+    private String pythonBaseUrl; 
 
+    // Constructor có thể bỏ RestClient.Builder nếu không dùng RestClient nữa
+    // Nhưng cứ để lại để tránh lỗi Bean nếu chỗ khác cần
     public VoiceService(RestClient.Builder builder) {
-        this.restClient = builder.build();
+    }
+
+    // Class DTO hứng kết quả
+    private static class PythonResponse {
+        public String text;
+        public String error;
     }
 
     public String chatWithVoice(MultipartFile audioFile) throws IOException {
-        // 1. Xác định URL của Python Service cho Voice
-        String voiceEndpoint = nlpApiUrl.replace("/api/chat", "") + "";
-        
-        logger.info("Calling Voice API at: {}", voiceEndpoint);
+        logger.info("=== START VOICE CHAT (RestTemplate Version) ===");
 
-        // 2. Đóng gói file để gửi đi
-        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
-        bodyBuilder.part("file", new ByteArrayResource(audioFile.getBytes()) {
+        // -------------------------------------------------------
+        // BƯỚC 1: Transcribe (Dùng RestTemplate gửi Multipart)
+        // -------------------------------------------------------
+        String transcribeUrl = pythonBaseUrl + "/transcribe";
+        
+        // Tạo Header Multipart
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        // Tạo Body (MultiValueMap)
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        
+        // QUAN TRỌNG: Key phải là "audio"
+        body.add("audio", new ByteArrayResource(audioFile.getBytes()) {
             @Override
             public String getFilename() {
-                // Python cần tên file có đuôi (vd: .webm, .wav) để xử lý đúng
-                return audioFile.getOriginalFilename() != null ? audioFile.getOriginalFilename() : "audio.webm";
+                // Bắt buộc phải có tên file có đuôi .wav/.mp3 để Python nhận diện
+                return "audio.wav";
             }
         });
 
-        // 3. Gửi Request sang Python
+        // Đóng gói Request
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        PythonResponse sttResult = null;
         try {
-            return restClient.post()
-                    .uri(voiceEndpoint)
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(bodyBuilder.build())
-                    .retrieve()
-                    .body(String.class);
+            logger.info("Calling Transcribe API: {}", transcribeUrl);
+            // Gửi bằng RestTemplate
+            sttResult = restTemplate.postForObject(transcribeUrl, requestEntity, PythonResponse.class);
         } catch (Exception e) {
-            logger.error("Error calling Python Voice API", e);
-            throw new IOException("Không thể kết nối tới AI Service: " + e.getMessage());
+            logger.error("Lỗi Transcribe: ", e);
+            return "{\"error\": \"Lỗi kết nối nhận diện giọng nói.\"}";
         }
+
+        if (sttResult == null || sttResult.text == null) {
+            logger.error("Transcribe trả về null");
+            return "{\"error\": \"Không nghe rõ bạn nói gì.\"}";
+        }
+        
+        String userText = sttResult.text;
+        logger.info("User Text: {}", userText);
+
+        // -------------------------------------------------------
+        // BƯỚC 2: Chat (Dùng RestTemplate gửi JSON String)
+        // -------------------------------------------------------
+        String chatUrl = pythonBaseUrl + "/api/chat";
+        
+        // Escape JSON thủ công để an toàn
+        String safeUserText = userText.replace("\"", "\\\"").replace("\n", " ");
+        String jsonBody = "{\"message\": \"" + safeUserText + "\"}";
+
+        HttpHeaders chatHeaders = new HttpHeaders();
+        chatHeaders.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> chatEntity = new HttpEntity<>(jsonBody, chatHeaders);
+
+        PythonResponse chatResult = null;
+        try {
+            chatResult = restTemplate.postForObject(chatUrl, chatEntity, PythonResponse.class);
+        } catch (Exception e) {
+            logger.error("Lỗi Chat AI: ", e);
+            return String.format("{\"user_text\": \"%s\", \"bot_response\": \"Lỗi xử lý AI.\"}", safeUserText);
+        }
+
+        String botResponse = (chatResult != null && chatResult.text != null) ? chatResult.text : "AI không trả lời.";
+        String safeBotResponse = botResponse.replace("\"", "\\\"").replace("\n", "\\n");
+
+        return String.format("{\"user_text\": \"%s\", \"bot_response\": \"%s\"}", safeUserText, safeBotResponse);
     }
 }

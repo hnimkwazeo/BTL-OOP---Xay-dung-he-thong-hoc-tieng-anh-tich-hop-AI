@@ -87,7 +87,7 @@ public class SecurityConfiguration {
                 "/api/v1/vocabularies",
                 "/api/v1/vocabularies/{id}",
                 "/ws/**",
-                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/api/v1/voice/**"
         };
 
         http

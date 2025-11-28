@@ -18,7 +18,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${DB_ROOT_PASSWORD}" ]
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u root -p123456" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -51,6 +51,7 @@ services:
       - app-network
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
     restart: unless-stopped
 
   app:
@@ -86,12 +87,12 @@ services:
       - VNPAY_IPN_URL=${APP_BACKEND_URL}/api/v1/payments/vnpay/ipn
       - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_USERNAME=${RABBITMQ_USER}
       - SPRING_RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
       - NLP_API_URL=${NLP_API_URL}
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - MYAPP_SCHEDULING_REMINDERS_CRON=0 0 8 * * *
       - SPRING_MAIL_USERNAME=${GMAIL_USERNAME}
       - SPRING_MAIL_PASSWORD=${GMAIL_APP_PASSWORD}
@@ -101,11 +102,14 @@ services:
       - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=${GMAIL_PROPERTIES_STARTTLS}
       - SPRING_MAIL_PROTOCOL=smtp
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
-      - GEMINI_API_URL=http://fourstars-nlp-api:8000
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*
+      - LOGGING_FILE_NAME=/app/logs/spring-app.log
+      - LOGGING_PATTERN_FILE=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
     volumes:
       - ./uploads:/app/uploads
       - ./src:/app/src
       - ./pom.xml:/app/pom.xml
+      - ./logs:/app/logs
     networks:
       - app-network
     restart: unless-stopped
