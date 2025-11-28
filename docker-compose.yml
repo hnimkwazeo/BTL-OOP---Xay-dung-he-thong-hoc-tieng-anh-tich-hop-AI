@@ -55,7 +55,6 @@ services:
     restart: unless-stopped
 
   app:
-    #image: dinhduong1610/fourstars-app:latest
     build: .
     container_name: fourstars-app
     depends_on:

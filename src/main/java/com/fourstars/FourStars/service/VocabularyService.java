@@ -58,12 +58,12 @@ public class VocabularyService {
     private final QuizService quizService;
 
     public VocabularyService(VocabularyRepository vocabularyRepository,
-            CategoryRepository categoryRepository,
-            UserVocabularyRepository userVocabularyRepository,
-            UserRepository userRepository,
-            SM2Service sm2Service, RabbitTemplate rabbitTemplate,
-            QuizGenerationService quizGenerationService,
-            QuizService quizService) {
+                             CategoryRepository categoryRepository,
+                             UserVocabularyRepository userVocabularyRepository,
+                             UserRepository userRepository,
+                             SM2Service sm2Service, RabbitTemplate rabbitTemplate,
+                             QuizGenerationService quizGenerationService,
+                             QuizService quizService) {
         this.vocabularyRepository = vocabularyRepository;
         this.categoryRepository = categoryRepository;
         this.userVocabularyRepository = userVocabularyRepository;
@@ -207,22 +207,18 @@ public class VocabularyService {
     @Transactional
     public void deleteVocabulary(long id) throws ResourceNotFoundException {
         logger.info("Admin deleting vocabulary with ID: {}", id);
-
         if (!vocabularyRepository.existsById(id)) {
             throw new ResourceNotFoundException("Vocabulary not found with id: " + id);
         }
         logger.warn("Deleting all user progress associated with vocabulary ID: {}", id);
-
         userVocabularyRepository.deleteByVocabularyId(id);
         vocabularyRepository.deleteById(id);
         logger.info("Successfully deleted vocabulary with ID: {}", id);
-
     }
 
     @Transactional(readOnly = true)
     public VocabularyResponseDTO fetchVocabularyById(long id) throws ResourceNotFoundException {
         logger.debug("Fetching vocabulary by ID: {}", id);
-
         Vocabulary vocab = vocabularyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Vocabulary not found with id: " + id));
         return convertToVocabularyResponseDTO(vocab);
@@ -230,11 +226,21 @@ public class VocabularyService {
 
     @Transactional(readOnly = true)
     public ResultPaginationDTO<VocabularyResponseDTO> fetchAllVocabularies(Pageable pageable, Long categoryId,
-            String word) {
+                                                                           String word) {
+
+        String email = SecurityUtil.getCurrentUserLogin().orElse("");
+        User currentUser = userRepository.findByEmail(email).orElse(null);
+
         logger.debug("Fetching all vocabularies with categoryId: {} and word: {}", categoryId, word);
 
         Specification<Vocabulary> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            // LOGIC PHÂN QUYỀN: Nếu là USER -> Chặn category ID 16 (Academic Vocabulary)
+            if (currentUser != null && "USER".equals(currentUser.getRole().getName())) {
+                predicates.add(criteriaBuilder.notEqual(root.get("category").get("id"), 16L));
+            }
+
             if (categoryId != null) {
                 predicates.add(criteriaBuilder.equal(root.get("category").get("id"), categoryId));
             }
@@ -262,13 +268,10 @@ public class VocabularyService {
     public List<VocabularyResponseDTO> getVocabulariesForReview(int limit) throws ResourceNotFoundException {
         User user = getCurrentAuthenticatedUser();
         logger.info("User '{}' requesting {} vocabularies for review.", user.getEmail(), limit);
-
         Pageable pageable = PageRequest.of(0, limit);
-
         List<Vocabulary> vocabularies = vocabularyRepository.findVocabulariesForReview(user.getId(), Instant.now(),
                 pageable);
         logger.info("Found {} vocabularies for user '{}' to review.", vocabularies.size(), user.getEmail());
-
         return vocabularies.stream()
                 .map(this::convertToVocabularyResponseDTO)
                 .collect(Collectors.toList());
@@ -297,7 +300,6 @@ public class VocabularyService {
                 description, null, 1);
 
         QuizDTO createdQuiz = quizService.createQuiz(generatedQuizData);
-
         return createdQuiz;
     }
 
@@ -325,7 +327,6 @@ public class VocabularyService {
 
     private UserVocabulary processReview(User user, SubmitReviewRequestDTO reviewDTO) {
         Long vocabularyId = reviewDTO.getVocabularyId();
-
         UserVocabularyId userVocabularyId = new UserVocabularyId(user.getId(), vocabularyId);
         Optional<UserVocabulary> optionalUserVocabulary = userVocabularyRepository.findById(userVocabularyId);
         UserVocabulary userVocabulary;
@@ -362,7 +363,6 @@ public class VocabularyService {
 
     @Transactional
     public UserVocabularyResponseDTO addVocabularyToNotebook(Long vocabularyId) {
-
         User user = getCurrentAuthenticatedUser();
         logger.info("User '{}' requesting to add vocabulary ID {} to notebook.", user.getEmail(), vocabularyId);
         return this.createOrGetNotebookEntry(user, vocabularyId);
@@ -388,7 +388,6 @@ public class VocabularyService {
 
         UserVocabulary newUserVocabulary = new UserVocabulary(user, vocab);
         UserVocabulary savedEntry = userVocabularyRepository.save(newUserVocabulary);
-
         return convertToUserVocabularyResponseDTO(savedEntry);
     }
 
@@ -528,5 +527,4 @@ public class VocabularyService {
                 .map(this::convertToVocabularyResponseDTO)
                 .collect(Collectors.toList());
     }
-
 }

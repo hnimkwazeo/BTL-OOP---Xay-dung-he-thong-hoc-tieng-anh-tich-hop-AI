@@ -19,13 +19,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fourstars.FourStars.domain.Article;
-import com.fourstars.FourStars.domain.Badge;
 import com.fourstars.FourStars.domain.Category;
+import com.fourstars.FourStars.domain.User;
 import com.fourstars.FourStars.domain.request.article.ArticleRequestDTO;
 import com.fourstars.FourStars.domain.response.ResultPaginationDTO;
 import com.fourstars.FourStars.domain.response.article.ArticleResponseDTO;
 import com.fourstars.FourStars.repository.ArticleRepository;
 import com.fourstars.FourStars.repository.CategoryRepository;
+import com.fourstars.FourStars.repository.UserRepository;
+import com.fourstars.FourStars.util.SecurityUtil;
 import com.fourstars.FourStars.util.constant.CategoryType;
 import com.fourstars.FourStars.util.error.BadRequestException;
 import com.fourstars.FourStars.util.error.DuplicateResourceException;
@@ -39,10 +41,12 @@ public class ArticleService {
 
     private final ArticleRepository articleRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
-    public ArticleService(ArticleRepository articleRepository, CategoryRepository categoryRepository) {
+    public ArticleService(ArticleRepository articleRepository, CategoryRepository categoryRepository, UserRepository userRepository) {
         this.articleRepository = articleRepository;
         this.categoryRepository = categoryRepository;
+        this.userRepository = userRepository;
     }
 
     private ArticleResponseDTO convertToArticleResponseDTO(Article article) {
@@ -95,15 +99,13 @@ public class ArticleService {
 
         Article article = new Article();
         article.setTitle(requestDTO.getTitle());
-        article.setContent(sanitizeHtmlContent(requestDTO.getContent())); // Làm sạch HTML
+        article.setContent(sanitizeHtmlContent(requestDTO.getContent()));
         article.setImage(requestDTO.getImage());
         article.setAudio(requestDTO.getAudio());
         article.setCategory(category);
 
         Article savedArticle = articleRepository.save(article);
-
         logger.info("Successfully created new article with ID: {}", savedArticle.getId());
-
         return convertToArticleResponseDTO(savedArticle);
     }
 
@@ -115,8 +117,7 @@ public class ArticleService {
         Article articleDB = articleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found with id: " + id));
 
-        if (articleRepository.existsByTitleAndCategoryIdAndIdNot(requestDTO.getTitle(), requestDTO.getCategoryId(),
-                id)) {
+        if (articleRepository.existsByTitleAndCategoryIdAndIdNot(requestDTO.getTitle(), requestDTO.getCategoryId(), id)) {
             throw new DuplicateResourceException("An article with the same title already exists in this category.");
         }
 
@@ -135,28 +136,22 @@ public class ArticleService {
         articleDB.setCategory(category);
 
         Article updatedArticle = articleRepository.save(articleDB);
-
         logger.info("Successfully updated article with ID: {}", updatedArticle.getId());
-
         return convertToArticleResponseDTO(updatedArticle);
     }
 
     @Transactional
     public void deleteArticle(long id) throws ResourceNotFoundException {
         logger.info("Request to delete article with ID: {}", id);
-
         Article articleToDelete = articleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found with id: " + id));
-
         articleRepository.delete(articleToDelete);
-
         logger.info("Successfully deleted article with ID: {}", id);
     }
 
     @Transactional(readOnly = true)
     public ArticleResponseDTO fetchArticleById(long id) throws ResourceNotFoundException {
         logger.debug("Request to fetch article by ID: {}", id);
-
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found with id: " + id));
         return convertToArticleResponseDTO(article);
@@ -164,11 +159,20 @@ public class ArticleService {
 
     @Transactional(readOnly = true)
     public ResultPaginationDTO<ArticleResponseDTO> fetchAllArticles(Pageable pageable, Long categoryId, String title,
-            LocalDate startCreatedAt, LocalDate endCreatedAt) {
+                                                                    LocalDate startCreatedAt, LocalDate endCreatedAt) {
+
+        String email = SecurityUtil.getCurrentUserLogin().orElse("");
+        User currentUser = userRepository.findByEmail(email).orElse(null);
+
         logger.debug("Request to fetch all articles with categoryId: {} and title: {}", categoryId, title);
 
         Specification<Article> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            if (currentUser != null && "USER".equals(currentUser.getRole().getName())) {
+                predicates.add(criteriaBuilder.notEqual(root.get("category").get("id"), 17L));
+            }
+
             if (categoryId != null) {
                 predicates.add(criteriaBuilder.equal(root.get("category").get("id"), categoryId));
             }
@@ -199,8 +203,6 @@ public class ArticleService {
                 pageArticle.getTotalElements());
 
         logger.debug("Found {} articles on page {}/{}", articleDTOs.size(), meta.getPage(), meta.getPages());
-
         return new ResultPaginationDTO<>(meta, articleDTOs);
     }
-
 }
