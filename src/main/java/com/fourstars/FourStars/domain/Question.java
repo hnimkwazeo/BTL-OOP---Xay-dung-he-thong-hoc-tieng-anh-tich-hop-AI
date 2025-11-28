@@ -4,6 +4,8 @@ import com.fourstars.FourStars.util.constant.QuestionType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -14,6 +16,8 @@ import java.util.Set;
 })
 @Getter
 @Setter
+@SQLDelete(sql = "UPDATE questions SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
 public class Question {
 
     @Id
@@ -63,4 +67,7 @@ public class Question {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vocabulary_id")
     private Vocabulary relatedVocabulary;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
 }

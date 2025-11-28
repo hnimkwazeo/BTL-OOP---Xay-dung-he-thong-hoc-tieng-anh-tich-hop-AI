@@ -36,16 +36,18 @@ public class DictationService {
     private final DictationTopicRepository topicRepository;
     private final CategoryRepository categoryRepository;
     private final DictationSentenceRepository sentenceRepository;
-    
-    // Đã xóa NlpApiService
 
     public DictationService(DictationTopicRepository topicRepository,
             CategoryRepository categoryRepository,
-            DictationSentenceRepository sentenceRepository) { // Đã xóa tham số nlpApiService
+            DictationSentenceRepository sentenceRepository) {
         this.topicRepository = topicRepository;
         this.categoryRepository = categoryRepository;
         this.sentenceRepository = sentenceRepository;
     }
+
+    // ========================================================================
+    // 1. ADMIN - CRUD OPERATIONS (Giữ nguyên logic chuẩn)
+    // ========================================================================
 
     @Transactional
     public DictationTopicResponseDTO createDictationTopic(DictationTopicRequestDTO requestDTO) {
@@ -68,7 +70,6 @@ public class DictationService {
         });
 
         DictationTopic savedTopic = topicRepository.save(topic);
-        logger.info("Successfully created dictation topic with ID: {}", savedTopic.getId());
         return convertToAdminDTO(savedTopic);
     }
 
@@ -96,23 +97,19 @@ public class DictationService {
         });
 
         DictationTopic updatedTopic = topicRepository.save(topic);
-        logger.info("Successfully updated dictation topic with ID: {}", updatedTopic.getId());
         return convertToAdminDTO(updatedTopic);
     }
 
     @Transactional
     public void deleteDictationTopic(long topicId) {
-        logger.info("Admin deleting dictation topic with ID: {}", topicId);
         if (!topicRepository.existsById(topicId)) {
             throw new ResourceNotFoundException("Dictation topic not found with id: " + topicId);
         }
         topicRepository.deleteById(topicId);
-        logger.info("Successfully deleted dictation topic with ID: {}", topicId);
     }
 
     @Transactional(readOnly = true)
     public DictationTopicResponseDTO getDictationTopicById(long topicId) {
-        logger.debug("Fetching dictation topic with ID: {}", topicId);
         DictationTopic topic = topicRepository.findById(topicId)
                 .orElseThrow(() -> new ResourceNotFoundException("Dictation topic not found with id: " + topicId));
         return convertToAdminDTO(topic);
@@ -120,177 +117,212 @@ public class DictationService {
 
     @Transactional(readOnly = true)
     public ResultPaginationDTO<DictationTopicResponseDTO> fetchAllTopics(
-            Pageable pageable,
-            Long categoryId,
-            String title,
-            LocalDate startCreatedAt,
-            LocalDate endCreatedAt) {
-        logger.debug("Fetching all dictation topics with filters");
-
-        Specification<DictationTopic> spec = (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            if (categoryId != null) {
-                predicates.add(criteriaBuilder.equal(root.get("category").get("id"), categoryId));
-            }
-            if (title != null && !title.trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("title")),
-                        "%" + title.trim().toLowerCase() + "%"));
-            }
-            if (startCreatedAt != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"),
-                        startCreatedAt.atStartOfDay(ZoneId.systemDefault()).toInstant()));
-            }
-            if (endCreatedAt != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"),
-                        endCreatedAt.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant()));
-            }
-
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
-
+            Pageable pageable, Long categoryId, String title, LocalDate startCreatedAt, LocalDate endCreatedAt) {
+        
+        Specification<DictationTopic> spec = buildSpecification(categoryId, title, startCreatedAt, endCreatedAt);
         Page<DictationTopic> topicPage = topicRepository.findAll(spec, pageable);
 
         List<DictationTopicResponseDTO> dtoList = topicPage.getContent().stream()
                 .map(this::convertToAdminDTO)
                 .collect(Collectors.toList());
 
-        ResultPaginationDTO.Meta meta = new ResultPaginationDTO.Meta(
-                topicPage.getNumber() + 1,
-                topicPage.getSize(),
-                topicPage.getTotalPages(),
-                topicPage.getTotalElements());
-        return new ResultPaginationDTO<>(meta, dtoList);
+        return createPaginationResult(topicPage, dtoList);
     }
+
+    // ========================================================================
+    // 2. USER - OPERATIONS
+    // ========================================================================
 
     @Transactional(readOnly = true)
     public ResultPaginationDTO<DictationTopicResponseDTO> fetchAllTopicsForUser(
-            Pageable pageable,
-            Long categoryId,
-            String title,
-            LocalDate startCreatedAt,
-            LocalDate endCreatedAt) {
-        logger.debug("Fetching all dictation topics with filters");
-
-        Specification<DictationTopic> spec = (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            if (categoryId != null) {
-                predicates.add(criteriaBuilder.equal(root.get("category").get("id"), categoryId));
-            }
-            if (title != null && !title.trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("title")),
-                        "%" + title.trim().toLowerCase() + "%"));
-            }
-            if (startCreatedAt != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"),
-                        startCreatedAt.atStartOfDay(ZoneId.systemDefault()).toInstant()));
-            }
-            if (endCreatedAt != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"),
-                        endCreatedAt.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant()));
-            }
-
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
-
+            Pageable pageable, Long categoryId, String title, LocalDate startCreatedAt, LocalDate endCreatedAt) {
+        
+        Specification<DictationTopic> spec = buildSpecification(categoryId, title, startCreatedAt, endCreatedAt);
         Page<DictationTopic> topicPage = topicRepository.findAll(spec, pageable);
 
         List<DictationTopicResponseDTO> dtoList = topicPage.getContent().stream()
                 .map(topic -> convertToUserResponseDTO(topic, false))
                 .collect(Collectors.toList());
 
-        ResultPaginationDTO.Meta meta = new ResultPaginationDTO.Meta(
-                topicPage.getNumber() + 1,
-                topicPage.getSize(),
-                topicPage.getTotalPages(),
-                topicPage.getTotalElements());
-        return new ResultPaginationDTO<>(meta, dtoList);
+        return createPaginationResult(topicPage, dtoList);
     }
 
     @Transactional(readOnly = true)
     public DictationTopicResponseDTO getDictationTopicForUser(long topicId) {
-        logger.debug("User fetching dictation topic with ID: {}", topicId);
         DictationTopic topic = topicRepository.findById(topicId)
                 .orElseThrow(() -> new ResourceNotFoundException("Dictation topic not found with id: " + topicId));
         return convertToAdminDTO(topic);
     }
 
-    // === ĐÃ SỬA HÀM NÀY THÀNH GIẢ LẬP (MOCK) ===
+    // ========================================================================
+    // 3. SCORING LOGIC (Levenshtein Distance) - PHẦN QUAN TRỌNG NHẤT
+    // ========================================================================
+
     @Transactional(readOnly = true)
     public NlpAnalysisResponse submitAndAnalyze(long sentenceId, String userText) {
-        logger.info("User submitting answer for sentence ID: {} (Mock Mode - NLP Disabled)", sentenceId);
-        
-        // Vẫn kiểm tra ID để đảm bảo tính toàn vẹn dữ liệu
-        if (!sentenceRepository.existsById(sentenceId)) {
-             throw new ResourceNotFoundException("Dictation sentence not found with id: " + sentenceId);
+        logger.info("User submitting answer for sentence ID: {}", sentenceId);
+
+        DictationSentence sentence = sentenceRepository.findById(sentenceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Dictation sentence not found with id: " + sentenceId));
+
+        String correctText = sentence.getCorrectText();
+        NlpAnalysisResponse response = new NlpAnalysisResponse();
+
+        if (correctText == null) {
+            response.setScore(0);
+            return response;
         }
+
+        // Nếu người dùng không nhập gì hoặc chỉ nhập khoảng trắng
+        if (userText == null || userText.trim().isEmpty()) {
+            response.setScore(0);
+            return response;
+        }
+
+        // 1. Chuẩn hóa chuỗi
+        String normCorrect = normalizeText(correctText);
+        String normUser = normalizeText(userText);
+
+        if (normCorrect.isEmpty()) {
+            response.setScore(normUser.isEmpty() ? 100 : 0);
+            return response;
+        }
+
+        // 2. Tính khoảng cách Levenshtein (Số bước chỉnh sửa để biến chuỗi A thành B)
+        int distance = calculateLevenshteinDistance(normCorrect, normUser);
+
+        // 3. Tính điểm phần trăm
+        // Công thức: Similarity = 1 - (distance / max_length)
+        int maxLength = Math.max(normCorrect.length(), normUser.length());
+        double similarity = 1.0 - ((double) distance / maxLength);
+
+        // Làm tròn điểm (ví dụ: 0.905 -> 91)
+        int score = (int) Math.round(similarity * 100);
         
-        // Trả về kết quả giả lập ngay lập tức
-        NlpAnalysisResponse mockResponse = new NlpAnalysisResponse();
-        mockResponse.setScore(100);
-        // Bạn có thể set thêm các thông tin khác nếu muốn (vd: explanations, diffs rỗng...)
-        return mockResponse;
+        // Chặn điểm tối thiểu là 0
+        response.setScore(Math.max(0, score));
+
+        // TODO: Phần này sau này bạn có thể tích hợp thư viện diff-match-patch để trả về array 'diffs' 
+        // cho frontend tô màu xanh đỏ chi tiết từng từ.
+        
+        return response;
+    }
+
+    // --- Helper Methods cho thuật toán ---
+
+    private String normalizeText(String text) {
+        if (text == null) return "";
+        // Chuyển thường, bỏ dấu câu (giữ lại chữ cái và số bất kể ngôn ngữ - Unicode safe)
+        // Regex: \P{L} match mọi thứ KHÔNG PHẢI chữ cái (Letter), \P{N} match KHÔNG PHẢI số
+        // Nhưng để đơn giản cho tiếng Anh, dùng regex cũ của bạn cũng ổn. 
+        // Dưới đây là bản nâng cấp để hỗ trợ tiếng Việt nếu cần:
+        // return text.toLowerCase().replaceAll("[^\\p{L}\\p{N}\\s]", "").replaceAll("\\s+", " ").trim();
+        
+        // Bản hiện tại (tốt cho tiếng Anh):
+        return text.toLowerCase()
+                   .replaceAll("[^a-zA-Z0-9\\s]", "") // Bỏ ký tự đặc biệt
+                   .replaceAll("\\s+", " ")           // Gộp nhiều khoảng trắng
+                   .trim();
+    }
+
+    private int calculateLevenshteinDistance(String s1, String s2) {
+        int[][]dp = new int[s1.length() + 1][s2.length() + 1];
+
+        for (int i = 0; i <= s1.length(); i++) {
+            for (int j = 0; j <= s2.length(); j++) {
+                if (i == 0) {
+                    dp[i][j] = j;
+                } else if (j == 0) {
+                    dp[i][j] = i;
+                } else {
+                    int cost = (s1.charAt(i - 1) == s2.charAt(j - 1)) ? 0 : 1;
+                    dp[i][j] = min(dp[i - 1][j] + 1,       // Deletion
+                                   dp[i][j - 1] + 1,       // Insertion
+                                   dp[i - 1][j - 1] + cost); // Substitution
+                }
+            }
+        }
+        return dp[s1.length()][s2.length()];
+    }
+
+    private int min(int a, int b, int c) {
+        return Math.min(Math.min(a, b), c);
+    }
+
+    // ========================================================================
+    // 4. UTILS & CONVERTERS
+    // ========================================================================
+
+    private Specification<DictationTopic> buildSpecification(Long categoryId, String title, LocalDate start, LocalDate end) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (categoryId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("category").get("id"), categoryId));
+            }
+            if (title != null && !title.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + title.trim().toLowerCase() + "%"));
+            }
+            if (start != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), start.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+            }
+            if (end != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), end.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant()));
+            }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    private ResultPaginationDTO<DictationTopicResponseDTO> createPaginationResult(Page<DictationTopic> page, List<DictationTopicResponseDTO> dtos) {
+        ResultPaginationDTO.Meta meta = new ResultPaginationDTO.Meta(
+                page.getNumber() + 1, page.getSize(), page.getTotalPages(), page.getTotalElements());
+        return new ResultPaginationDTO<>(meta, dtos);
     }
 
     private DictationTopicResponseDTO convertToUserResponseDTO(DictationTopic topic, boolean includeSentences) {
         DictationTopicResponseDTO topicDto = new DictationTopicResponseDTO();
-        topicDto.setId(topic.getId());
-        topicDto.setTitle(topic.getTitle());
-        topicDto.setDescription(topic.getDescription());
-        if (topic.getCategory() != null) {
-            DictationTopicResponseDTO.CategoryInfoDTO catInfo = new DictationTopicResponseDTO.CategoryInfoDTO();
-            catInfo.setId(topic.getCategory().getId());
-            catInfo.setName(topic.getCategory().getName());
-            topicDto.setCategory(catInfo);
-        }
-        topicDto.setCreatedAt(topic.getCreatedAt());
-        topicDto.setUpdatedAt(topic.getUpdatedAt());
-        topicDto.setCreatedBy(topic.getCreatedBy());
-        topicDto.setUpdatedBy(topic.getUpdatedBy());
+        mapCommonFields(topic, topicDto);
+        
         if (includeSentences) {
-            List<DictationSentenceResponseDTO> sentenceDtos = topic.getSentences().stream()
-                    .map(sentence -> {
-                        DictationSentenceResponseDTO sentenceDto = new DictationSentenceResponseDTO();
-                        sentenceDto.setId(sentence.getId());
-                        sentenceDto.setAudioUrl(sentence.getAudioUrl());
-                        sentenceDto.setOrderIndex(sentence.getOrderIndex());
-                        return sentenceDto;
-                    })
-                    .collect(Collectors.toList());
-            topicDto.setSentences(sentenceDtos);
+            topicDto.setSentences(topic.getSentences().stream().map(s -> {
+                DictationSentenceResponseDTO dto = new DictationSentenceResponseDTO();
+                dto.setId(s.getId());
+                dto.setAudioUrl(s.getAudioUrl());
+                dto.setOrderIndex(s.getOrderIndex());
+                return dto;
+            }).collect(Collectors.toList()));
         }
         return topicDto;
     }
 
     private DictationTopicResponseDTO convertToAdminDTO(DictationTopic topic) {
         DictationTopicResponseDTO topicDto = new DictationTopicResponseDTO();
-        topicDto.setId(topic.getId());
-        topicDto.setTitle(topic.getTitle());
-        topicDto.setDescription(topic.getDescription());
-        if (topic.getCategory() != null) {
-            DictationTopicResponseDTO.CategoryInfoDTO catInfo = new DictationTopicResponseDTO.CategoryInfoDTO();
-            catInfo.setId(topic.getCategory().getId());
-            catInfo.setName(topic.getCategory().getName());
-            topicDto.setCategory(catInfo);
-        }
-        topicDto.setCreatedAt(topic.getCreatedAt());
-        topicDto.setUpdatedAt(topic.getUpdatedAt());
-        topicDto.setCreatedBy(topic.getCreatedBy());
-        topicDto.setUpdatedBy(topic.getUpdatedBy());
+        mapCommonFields(topic, topicDto);
 
-        List<DictationSentenceResponseDTO> sentenceDtos = topic.getSentences().stream()
-                .map(sentence -> {
-                    DictationSentenceResponseDTO sentenceDto = new DictationSentenceResponseDTO();
-                    sentenceDto.setId(sentence.getId());
-                    sentenceDto.setCorrectText(sentence.getCorrectText());
-                    sentenceDto.setAudioUrl(sentence.getAudioUrl());
-                    sentenceDto.setOrderIndex(sentence.getOrderIndex());
-                    return sentenceDto;
-                })
-                .collect(Collectors.toList());
-
-        topicDto.setSentences(sentenceDtos);
+        topicDto.setSentences(topic.getSentences().stream().map(s -> {
+            DictationSentenceResponseDTO dto = new DictationSentenceResponseDTO();
+            dto.setId(s.getId());
+            dto.setCorrectText(s.getCorrectText()); // Admin thấy được text đúng
+            dto.setAudioUrl(s.getAudioUrl());
+            dto.setOrderIndex(s.getOrderIndex());
+            return dto;
+        }).collect(Collectors.toList()));
+        
         return topicDto;
+    }
+
+    private void mapCommonFields(DictationTopic source, DictationTopicResponseDTO target) {
+        target.setId(source.getId());
+        target.setTitle(source.getTitle());
+        target.setDescription(source.getDescription());
+        if (source.getCategory() != null) {
+            DictationTopicResponseDTO.CategoryInfoDTO catInfo = new DictationTopicResponseDTO.CategoryInfoDTO();
+            catInfo.setId(source.getCategory().getId());
+            catInfo.setName(source.getCategory().getName());
+            target.setCategory(catInfo);
+        }
+        target.setCreatedAt(source.getCreatedAt());
+        target.setUpdatedAt(source.getUpdatedAt());
+        target.setCreatedBy(source.getCreatedBy());
+        target.setUpdatedBy(source.getUpdatedBy());
     }
 }

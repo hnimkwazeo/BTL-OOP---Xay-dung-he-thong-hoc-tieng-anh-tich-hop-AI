@@ -87,7 +87,8 @@ public class SecurityConfiguration {
                 "/api/v1/vocabularies",
                 "/api/v1/vocabularies/{id}",
                 "/ws/**",
-                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/api/v1/voice/**"
+                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/api/v1/voice/**",
+                "/api/v1/chatbot/explain-dictation"
         };
 
         http
@@ -98,6 +99,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(whiteList).permitAll()
                                 .requestMatchers("/actuator/**").hasAuthority("ROLE_ADMIN")
                                 .requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN")
+                                .requestMatchers("/api/v1/chatbot/**").authenticated()
                                 .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt

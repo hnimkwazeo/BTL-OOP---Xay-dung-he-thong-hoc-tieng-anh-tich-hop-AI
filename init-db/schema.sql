@@ -110,7 +110,10 @@ VALUES
 (12, NOW(), 'system', 'Video luyện nghe cơ bản', 'Beginner Listening', 1, 'VIDEO', NOW(), 'system', 3),
 (13, NOW(), 'system', 'Video luyện nghe nâng cao', 'Advanced Listening', 2, 'VIDEO', NOW(), 'system', 3),
 (14, NOW(), 'system', 'Bài báo tin tức', 'News Articles', 1, 'ARTICLE', NOW(), 'system', 4),
-(15, NOW(), 'system', 'Bài nghe chép cơ bản', 'Beginner Dictation', 1, 'DICTATION', NOW(), 'system', 5);
+(15, NOW(), 'system', 'Bài nghe chép cơ bản', 'Beginner Dictation', 1, 'DICTATION', NOW(), 'system', 5),
+
+(16, NOW(), 'system', 'Từ vựng học thuật IELTS/TOEIC (Dành cho Premium)', 'Academic Vocabulary', 5, 'VOCABULARY', NOW(), 'system', 1),
+(17, NOW(), 'system', 'Bài báo chuyên sâu (Dành cho Premium)', 'News premium Articles', 2, 'ARTICLE', NOW(), 'system', 4);
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -132,7 +135,10 @@ VALUES
 (7, 'https://dictionary.cambridge.org/us/media/english/us_pron/a/app/apple/apple.mp3', NOW(), 'system', 'A round fruit with red or green skin.', 'An apple a day keeps the doctor away.', 'Một quả táo mỗi ngày giúp tránh xa bác sĩ.', 'https://hongngochospital.vn/wp-content/uploads/2013/11/tao-1.jpg', 'Quả táo', 'noun', '/ˈæp.əl/', NOW(), 'system', 'Apple', 8),
 (8, 'https://dictionary.cambridge.org/us/media/english/us_pron/b/bre/bread/bread.mp3', NOW(), 'system', 'A basic food made from flour and water.', 'I eat bread for breakfast.', 'Tôi ăn bánh mì cho bữa sáng.', 'https://assets.epicurious.com/photos/562e49d300392e9c31da8947/master/pass/EP_10212015_BanhMi-4.jpg', 'Bánh mì', 'noun', '/bred/', NOW(), 'system', 'Bread', 8),
 (9, 'https://dictionary.cambridge.org/us/media/english/us_pron/b/bre/bread/bread.mp3', NOW(), 'system', 'A vehicle that flies in the air.', 'The airplane is flying high.', 'Máy bay đang bay cao.', 'https://khoinguonsangtao.vn/wp-content/uploads/2022/10/hinh-anh-may-bay-tren-bau-troi-dep-sac-net.jpg', 'Máy bay', 'noun', '/ˈeə.pleɪn/', NOW(), 'system', 'Airplane', 9),
-(10, 'https://dictionary.cambridge.org/us/media/english/us_pron/h/hot/hotel/hotel.mp3', NOW(), 'system', 'A place where you pay to stay.', 'We stayed at a nice hotel.', 'Chúng tôi đã ở một khách sạn đẹp.', 'https://khonggianxanh.com/wp-content/uploads/2020/09/4-mau-thiet-ke-sanh-khach-san-doc-dao-2020-2.jpg', 'Khách sạn', 'noun', '/həʊˈtel/', NOW(), 'system', 'Hotel', 9);
+(11, 'https://dictionary.cambridge.org/us/media/english/us_pron/h/hyp/hypot/hypothesis.mp3', NOW(), 'system', 'A supposition or proposed explanation made on the basis of limited evidence.', 'This hypothesis needs to be tested.', 'Giả thuyết này cần được kiểm nghiệm.', 'https://luanvanviet.com/wp-content/uploads/2021/08/hinh-anh-gia-thuyet-nghien-cuu-khoa-hoc-4.jpg', 'Giả thuyết', 'noun', '/haɪˈpɒθ.ə.sɪs/', NOW(), 'system', 'Hypothesis', 16),
+(12, 'https://dictionary.cambridge.org/us/media/english/us_pron/p/phe/pheno/phenomenon.mp3', NOW(), 'system', 'A fact or situation that is observed to exist or happen.', 'Glaciers are interesting natural phenomena.', 'Sông băng là những hiện tượng tự nhiên thú vị.', 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=400', 'Hiện tượng', 'noun', '/fəˈnɒm.ɪ.nən/', NOW(), 'system', 'Phenomenon', 16),
+(13, 'https://dictionary.cambridge.org/us/media/english/us_pron/p/pre/preva/prevalent.mp3', NOW(), 'system', 'Widespread in a particular area or at a particular time.', 'These diseases are more prevalent among young children.', 'Những bệnh này phổ biến hơn ở trẻ nhỏ.', 'https://prodima.vn/wp-content/uploads/2022/04/trend-la-gi-lam-the-nao-de-doanh-nghiep-bat-trend-hieu-qua.jpg', 'Phổ biến, thịnh hành', 'adjective', '/ˈprev.əl.ənt/', NOW(), 'system', 'Prevalent', 16),
+(14, 'https://dictionary.cambridge.org/us/media/english/us_pron/o/opt/optim/optimally.mp3', NOW(), 'system', 'Ideally; in the best possible way.', 'She performed optimally under pressure.', 'Cô ấy đã thể hiện một cách tối ưu dưới áp lực.', 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=400', 'Một cách tối ưu', 'adverb', '/ˈɒp.tɪ.məl.i/', NOW(), 'system', 'Optimally', 16);
 /*!40000 ALTER TABLE `vocabularies` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -189,7 +195,10 @@ VALUES
 (1, '/uploads/audio/article_1.mp3', '<h2>Thành phố tương lai</h2><p>Các nhà khoa học đang nghiên cứu...</p>', NOW(), 'system', '/uploads/articles/image/image_1.jpg', 'Building the City of the Future', NOW(), 'system', 14),
 (2, '/uploads/audio/article_2.mp3', '<h2>AI thay đổi thế giới</h2><p>Trí tuệ nhân tạo đang phát triển nhanh...</p>', NOW(), 'system', '/uploads/articles/image/image_2.jpg', 'How AI is Changing the World', NOW(), 'system', 14),
 (3, '/uploads/audio/article_3.mp3', '<h2>Lợi ích của việc ngủ đủ giấc</h2><p>Ngủ đủ 8 tiếng mỗi ngày...</p>', NOW(), 'system', '/uploads/articles/image/image_3.jpg', 'The Benefits of Sleep', NOW(), 'system', 14),
-(4, '/uploads/audio/article_3.mp3', '<h2>Lịch sử Vua Arthur</h2><p>Liệu Vua Arthur có thật không? ...</p>', NOW(), 'system', '/uploads/articles/image/image_6.jpg', 'The Legend of King Arthur', NOW(), 'system', 14);
+(4, '/uploads/audio/article_3.mp3', '<h2>Lịch sử Vua Arthur</h2><p>Liệu Vua Arthur có thật không? ...</p>', NOW(), 'system', '/uploads/articles/image/image_6.jpg', 'The Legend of King Arthur', NOW(), 'system', 14),
+(5, '/uploads/audio/article_2.mp3', '<h2>Lịch sử Vua Arthur</h2><p>Liệu Vua Arthur có thật không? ...</p>', NOW(), 'system', '/uploads/articles/image/image_6.jpg', 'The Legend of King Arthur', NOW(), 'system', 17),
+(6, '/uploads/audio/article_1.mp3', '<h2>Ẩm thực Ý</h2><p>Pizza và Pasta nổi tiếng toàn cầu...</p>', NOW(), 'system', '/uploads/articles/image/image_7.jpg', 'The History of Italian Cuisine', NOW(), 'system', 17),
+(7, '/uploads/audio/article_2.mp3', '<h2>Sự trỗi dậy của K-Pop</h2><p>Âm nhạc Hàn Quốc đã chinh phục...</p>', NOW(), 'system', '/uploads/articles/image/image_8.jpg', 'The Rise of K-Pop', NOW(), 'system', 17);
 /*!40000 ALTER TABLE `articles` ENABLE KEYS */;
 UNLOCK TABLES;
 
