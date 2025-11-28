@@ -61,7 +61,7 @@ public class SecurityConfiguration {
     @SuppressWarnings("deprecation")
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-            CustomAuthenticationEntryPoint customAuthenticationEntryPoint, StreakUpdateFilter streakUpdateFilter)
+                                           CustomAuthenticationEntryPoint customAuthenticationEntryPoint, StreakUpdateFilter streakUpdateFilter)
             throws Exception {
         String[] whiteList = {
                 "/api/v1/auth/login",
@@ -98,6 +98,12 @@ public class SecurityConfiguration {
                                 .requestMatchers(whiteList).permitAll()
                                 .requestMatchers("/actuator/**").hasAuthority("ROLE_ADMIN")
                                 .requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN")
+
+                                // --- THÊM DÒNG NÀY ---
+                                // Cho phép user đã đăng nhập gọi API chatbot
+                                .requestMatchers("/api/v1/chatbot/**").authenticated()
+                                // ---------------------
+
                                 .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt

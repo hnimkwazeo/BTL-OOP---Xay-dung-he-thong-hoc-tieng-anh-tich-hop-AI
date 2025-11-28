@@ -36,12 +36,10 @@ public class DictationService {
     private final DictationTopicRepository topicRepository;
     private final CategoryRepository categoryRepository;
     private final DictationSentenceRepository sentenceRepository;
-    
-    // Đã xóa NlpApiService
 
     public DictationService(DictationTopicRepository topicRepository,
             CategoryRepository categoryRepository,
-            DictationSentenceRepository sentenceRepository) { // Đã xóa tham số nlpApiService
+            DictationSentenceRepository sentenceRepository) {
         this.topicRepository = topicRepository;
         this.categoryRepository = categoryRepository;
         this.sentenceRepository = sentenceRepository;
@@ -216,21 +214,94 @@ public class DictationService {
         return convertToAdminDTO(topic);
     }
 
-    // === ĐÃ SỬA HÀM NÀY THÀNH GIẢ LẬP (MOCK) ===
+    // === HÀM XỬ LÝ CHẤM ĐIỂM (PARTIAL SCORING) ===
     @Transactional(readOnly = true)
     public NlpAnalysisResponse submitAndAnalyze(long sentenceId, String userText) {
-        logger.info("User submitting answer for sentence ID: {} (Mock Mode - NLP Disabled)", sentenceId);
-        
-        // Vẫn kiểm tra ID để đảm bảo tính toàn vẹn dữ liệu
-        if (!sentenceRepository.existsById(sentenceId)) {
-             throw new ResourceNotFoundException("Dictation sentence not found with id: " + sentenceId);
+        logger.info("User submitting answer for sentence ID: {}", sentenceId);
+
+        DictationSentence sentence = sentenceRepository.findById(sentenceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Dictation sentence not found with id: " + sentenceId));
+
+        String correctText = sentence.getCorrectText();
+        NlpAnalysisResponse response = new NlpAnalysisResponse();
+
+        if (correctText == null) {
+            response.setScore(0);
+            return response;
         }
-        
-        // Trả về kết quả giả lập ngay lập tức
-        NlpAnalysisResponse mockResponse = new NlpAnalysisResponse();
-        mockResponse.setScore(100);
-        // Bạn có thể set thêm các thông tin khác nếu muốn (vd: explanations, diffs rỗng...)
-        return mockResponse;
+
+        // Nếu người dùng không nhập gì
+        if (userText == null || userText.trim().isEmpty()) {
+            response.setScore(0);
+            return response;
+        }
+
+        // 1. Chuẩn hóa chuỗi (bỏ dấu câu, chuyển về thường) để so sánh nội dung
+        String normCorrect = normalizeText(correctText);
+        String normUser = normalizeText(userText);
+
+        if (normCorrect.isEmpty()) {
+            // Trường hợp DB lưu câu rỗng (ít xảy ra), coi như người dùng đúng nếu cũng nhập rỗng
+            response.setScore(normUser.isEmpty() ? 100 : 0);
+            return response;
+        }
+
+        // 2. Tính khoảng cách Levenshtein
+        int distance = calculateLevenshteinDistance(normCorrect, normUser);
+
+        // 3. Tính điểm phần trăm
+        // Điểm = (1 - distance / max_length) * 100
+        int maxLength = Math.max(normCorrect.length(), normUser.length());
+        double similarity = 1.0 - ((double) distance / maxLength);
+
+        // Làm tròn điểm (ví dụ: 90.5 -> 91)
+        int score = (int) Math.round(similarity * 100);
+
+        // Đảm bảo không âm (phòng trường hợp thuật toán lỗi, dù logic trên luôn >= 0)
+        score = Math.max(0, score);
+
+        response.setScore(score);
+
+        // Bạn có thể thêm logic tạo Diff ở đây nếu muốn hiển thị chữ xanh/đỏ
+        // response.setDiffs(...);
+
+        return response;
+    }
+
+    // Hàm hỗ trợ: Chuẩn hóa text (chữ thường, bỏ dấu câu đặc biệt)
+    private String normalizeText(String text) {
+        if (text == null) return "";
+        // Chuyển thường và loại bỏ các ký tự không phải chữ/số (giữ lại khoảng trắng)
+        // Ví dụ: "Hello, World!" -> "hello world"
+        return text.toLowerCase()
+                   .replaceAll("[^a-zA-Z0-9\\s]", "") // Bỏ dấu câu
+                   .replaceAll("\\s+", " ")           // Gộp nhiều khoảng trắng thành 1
+                   .trim();
+    }
+
+    // Hàm hỗ trợ: Thuật toán Levenshtein Distance (Quy hoạch động)
+    private int calculateLevenshteinDistance(String s1, String s2) {
+        int[][] dp = new int[s1.length() + 1][s2.length() + 1];
+
+        for (int i = 0; i <= s1.length(); i++) {
+            for (int j = 0; j <= s2.length(); j++) {
+                if (i == 0) {
+                    dp[i][j] = j;
+                } else if (j == 0) {
+                    dp[i][j] = i;
+                } else {
+                    int cost = (s1.charAt(i - 1) == s2.charAt(j - 1)) ? 0 : 1;
+                    dp[i][j] = min(dp[i - 1][j] + 1,      // Deletion
+                                   dp[i][j - 1] + 1,      // Insertion
+                                   dp[i - 1][j - 1] + cost); // Substitution
+                }
+            }
+        }
+        return dp[s1.length()][s2.length()];
+    }
+
+    private int min(int a, int b, int c) {
+        return Math.min(Math.min(a, b), c);
     }
 
     private DictationTopicResponseDTO convertToUserResponseDTO(DictationTopic topic, boolean includeSentences) {
