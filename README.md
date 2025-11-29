@@ -173,5 +173,4 @@ Tài liệu API chi tiết được tạo tự động bằng Swagger. Sau khi k
 
 ## ✍️ Tác giả
 
-* **Đính Dương**
-* **Email:** jenny.180820@gmail.com
+* **Nhóm 16.01**
