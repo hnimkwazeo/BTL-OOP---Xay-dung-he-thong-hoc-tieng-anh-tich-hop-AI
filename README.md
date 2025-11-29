@@ -134,8 +134,8 @@ Dự án này áp dụng nhiều kỹ thuật và kiến trúc:
 Đây là project backend, là trái tim của một hệ sinh thái gồm 3 phần:
 
 * **Backend:** - Xây dựng bằng Spring Boot, chịu trách nhiệm xử lý toàn bộ logic nghiệp vụ, quản lý dữ liệu và bảo mật.
-* **Frontend:** https://github.com/DinhDuong1610/4Stars-english-ui - Xây dựng bằng React/Vite, cung cấp giao diện người dùng hiện đại, tương tác cao.
-* **AI Service:** https://github.com/DinhDuong1610/4Stars-english-AI - Xây dựng bằng Python/FastAPI, chứa mô hình NLP tự train để phục vụ tính năng phân tích chính tả.
+* **Frontend:** (https://github.com/hnimkwazeo/UI.git) - Xây dựng bằng React/Vite, cung cấp giao diện người dùng hiện đại, tương tác cao.
+* **AI Service:** (https://github.com/hnimkwazeo/AI.git) - Xây dựng bằng Python/FastAPI, chứa mô hình NLP tự train để phục vụ tính năng phân tích chính tả.
 
 ## 🚀 Bắt đầu (Getting Started)
 
