@@ -7,11 +7,6 @@
 
 **FourStars English** là một dự án backend cho nền tảng học tiếng Anh full-stack, tập trung vào hiệu năng, khả năng mở rộng và trải nghiệm người dùng tương tác cao. Được tích hợp mô hình **NLP** tự xây dựng.
 
-## 🔗 Liên kết Demo
-
-> **Link trang web:** [https://fourstars.tech](https://fourstars.tech)  
-> **Link tài liệu API (Swagger):** [https://fourstars.tech/swagger-ui.html](https://fourstars.tech/swagger-ui.html)
-
 ## 🚀 Tính năng Nổi bật (Features Showcase)
 
 Dưới đây là một vài hình ảnh về các tính năng chính của ứng dụng.
@@ -154,22 +149,16 @@ Hướng dẫn để chạy dự án này ở môi trường local.
 ### Các bước
 1.  **Clone a project:**
     ```bash
-    git clone https://github.com/DinhDuong1610/4stars-english-BE
-    cd 4stars-english-BE
+    git clone [https://github.com/DinhDuong1610/4stars-english-BE](https://github.com/hnimkwazeo/BTL-OOP---Xay-dung-he-thong-hoc-tieng-anh-tich-hop-AI.git)
+    cd BTL-OOP---Xay-dung-he-thong-hoc-tieng-anh-tich-hop-AI
     ```
 2.  **Tạo file `.env`:**
-    * Sao chép file `.env.example` thành một file mới tên là `.env`.
-    * Điền các thông tin bí mật và cấu hình cần thiết của bạn vào file `.env`.
+
 3.  **Chạy bằng Docker Compose:**
     ```bash
     docker-compose up -d
     ```
 4.  Ứng dụng sẽ chạy tại `http://localhost:8080`.
-
-## 📖 Tài liệu API
-
-Tài liệu API chi tiết được tạo tự động bằng Swagger. Sau khi khởi động ứng dụng, truy cập:
-> `http://localhost:8080/swagger-ui.html`
 
 ## ✍️ Tác giả
 
