@@ -149,7 +149,7 @@ Hướng dẫn để chạy dự án này ở môi trường local.
 ### Các bước
 1.  **Clone a project:**
     ```bash
-    git clone [https://github.com/DinhDuong1610/4stars-english-BE](https://github.com/hnimkwazeo/BTL-OOP---Xay-dung-he-thong-hoc-tieng-anh-tich-hop-AI.git)
+    git clone (https://github.com/hnimkwazeo/BTL-OOP---Xay-dung-he-thong-hoc-tieng-anh-tich-hop-AI.git)
     cd BTL-OOP---Xay-dung-he-thong-hoc-tieng-anh-tich-hop-AI
     ```
 2.  **Tạo file `.env`:**
